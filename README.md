@@ -13,6 +13,15 @@ The method is deliberately **clone-agnostic**: it uses clone identity but not
 the expression or CNV similarity between clones. It answers whether cells of
 a state are concentrated in a few clones or spread across the valid clones.
 
+CloneDisp also supports **multi-definition analysis**. Each clone definition is
+analyzed independently, then patient-level CDI values are compared across
+definitions. Cell labels from different resolutions are never pooled.
+
+The input table is the downstream product of a CNV workflow, not the raw
+inferCNV matrix. See
+[Generate CloneDisp labels from inferCNV](docs/input_from_infercnv.md) for the
+R inferCNV pipeline, a reusable label-export script, and common input errors.
+
 ## Definition
 
 For patient `p` and state `s`, let:
@@ -48,6 +57,12 @@ For development:
 ```bash
 python -m pip install -e ".[dev]"
 pytest
+```
+
+For plotting without the development tools:
+
+```bash
+python -m pip install ".[plot]"
 ```
 
 ## Command line
@@ -86,11 +101,45 @@ The command writes:
 Use `clonedisp --help` for all options. By default, a CSV is comma-delimited
 and a `.tsv` or `.txt` file is tab-delimited.
 
+## Multi-definition analysis
+
+Create a manifest with one row per clone definition:
+
+```csv
+definition,path
+res 0.5,labels/res0p5.csv.gz
+res 0.6,labels/res0p6.csv.gz
+res 0.7,labels/res0p7.csv.gz
+```
+
+Then run:
+
+```bash
+clonedisp-multi \
+  --manifest definitions.csv \
+  --output-prefix cdi_multi \
+  --plot \
+  --focus e1 \
+  --focus e2
+```
+
+The command computes CDI separately for every definition and writes:
+
+- `*_definition_patient_metrics.csv`: patient-state values within each
+  definition;
+- `*_definition_summary.csv`: patient-level mean CDI per definition and state;
+- `*_state_summary.csv`: median, range, and rank across definitions;
+- `*_skipped.csv` and `*_run.json`;
+- `*.pdf` and `*.png` when `--plot` is enabled.
+
+For tables without a sample column, `--cell-id cell --sample-regex
+"^(T\\d+)_"` can derive sample identifiers from cell names.
+
 ## Python API
 
 ```python
 import pandas as pd
-from clonedisp import analyze_clone_dispersion
+from clonedisp import analyze_clone_dispersion, analyze_multi_definition
 
 labels = pd.read_csv("labels.csv")
 result = analyze_clone_dispersion(
@@ -105,6 +154,14 @@ result = analyze_clone_dispersion(
 print(result.metrics)
 print(result.clone_validity)
 print(result.state_summary)
+
+by_definition = {
+    "res 0.5": labels_res05,
+    "res 0.7": labels_res07,
+    "res 1.0": labels_res10,
+}
+multi = analyze_multi_definition(by_definition)
+print(multi.state_summary)
 ```
 
 If a unique cell identifier is available, pass `cell_id_col="cell_id"`.
