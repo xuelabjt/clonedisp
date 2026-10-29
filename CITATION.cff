@@ -1,0 +1,14 @@
+cff-version: 1.2.0
+message: "If you use CloneDisp, please cite this software repository."
+type: software
+title: "CloneDisp: Effective Clone Dispersion from single-cell clone labels"
+version: 0.1.0
+date-released: 2026-10-29
+authors:
+  - family-names: Wang
+    given-names: Xian
+license: MIT
+abstract: >-
+  CloneDisp calculates the inverse-Simpson effective clone number and a
+  normalized clone-agnostic Clonal Dispersion Index from cell-level
+  sample-state-clone labels.
