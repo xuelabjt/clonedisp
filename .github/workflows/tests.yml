@@ -27,3 +27,7 @@ jobs:
             --input examples/example_labels.csv \
             --output-prefix /tmp/clonedisp_smoke \
             --bootstrap 100
+          clonedisp-multi \
+            --manifest examples/multi_manifest.csv \
+            --output-prefix /tmp/clonedisp_multi_smoke \
+            --bootstrap 100
