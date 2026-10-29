@@ -1,0 +1,3 @@
+definition,path
+res 0.5,example_labels.csv
+res 1.0,example_labels.csv
